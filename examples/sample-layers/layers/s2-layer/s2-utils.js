@@ -10,7 +10,8 @@ import {S2} from 's2-geometry';
  *   - the polygon is closed, i.e. last coordinate is a copy of the first coordinate
  */
 export function getS2Polygon(key) {
-  const s2cell = S2.S2Cell.FromHilbertQuadKey(key);
+  const s2cell = S2.S2Cell.FromLatLng(S2.idToLatLng(key), 13);
+  // const s2cell = S2.S2Cell.FromHilbertQuadKey(key);
   const corners = s2cell.getCornerLatLngs();
   const polygon = corners.map(corner => [corner.lng, corner.lat]);
   // close the polygon: first and last position of the ring should be the same

@@ -42,8 +42,6 @@ import {Layer, PolygonLayer} from 'deck.gl';
 
 import {getS2Polygon} from './s2-utils';
 
-function noop() {}
-
 const defaultStrokeColor = [0x33, 0x33, 0x33, 0xFF];
 const defaultFillColor = [0xBD, 0xE2, 0x7A, 0xFF];
 
@@ -68,59 +66,14 @@ const defaultProps = {
 
 export default class S2Layer extends Layer {
   initializeState() {
-    this.state = {
-      polygons: [],
-      pickInfos: []
-    };
   }
 
   updateState({oldProps, props, changeFlags}) {
-    if (changeFlags.dataChanged) {
-      const {data, getS2Token} = this.props;
-      this.state.dataWithPolygons = data.map(object => {
-        return {
-          object,
-          polygon: getS2Polygon(getS2Token(object))
-        };
-      });
-    }
-  }
-
-  _onHoverSublayer(info) {
-    this.state.pickInfos.push(info);
-  }
-
-  pick(opts) {
-    super.pick(opts);
-
-    const info = this.state.pickInfos.find(i => i.index >= 0);
-
-    if (opts.mode === 'hover') {
-      this.state.pickInfos = [];
-    }
-
-    if (!info) {
-      return;
-    }
-
-    // Object.assign(opts.info, info, {
-    //   layer: this,
-    //   feature: get(info, 'object.feature') || info.object
-    // });
   }
 
   renderLayers() {
-
-    const {polygons} = this.state;
-    const {id, getS2Token, getPointColor, getPointSize, getStrokeColor, getStrokeWidth,
-      getFillColor, getHeight} = this.props;
+    const {id, getS2Token, getFillColor, getHeight} = this.props;
     const {extruded, wireframe} = this.props;
-
-    let {drawPoints, drawLines, drawPolygons, fillPolygons} = this.props;
-    drawPoints = drawPoints && pointFeatures && pointFeatures.length > 0;
-    drawLines = drawLines && lineFeatures && lineFeatures.length > 0;
-    drawPolygons = drawPolygons && polygonOutlineFeatures && polygonOutlineFeatures.length > 0;
-    fillPolygons = fillPolygons && polygonFeatures && polygonFeatures.length > 0;
 
     // Filled Polygon Layer
     const polygonFillLayer = new PolygonLayer(Object.assign({}, this.props, {
@@ -129,10 +82,7 @@ export default class S2Layer extends Layer {
       getHeight,
       getColor: getFillColor,
       extruded,
-      wireframe: false,
-      // Override user's onHover and onClick props
-      onHover: this._onHoverSublayer.bind(this),
-      onClick: noop,
+      wireframe,
       updateTriggers: Object.assign({}, this.props.updateTriggers, {
         getColor: this.props.updateTriggers.getFillColor
       })

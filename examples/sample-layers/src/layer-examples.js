@@ -47,9 +47,9 @@ const S2LayerExample = {
     id: 'pathLayer',
     data: dataSamples.s2cells,
     opacity: 0.6,
-    getS2Token: f => f.token,
+    getS2Token: f => f.id,
     getPath: f => f.path,
-    getColor: f => COLORS,
+    getFillColor: f => [Math.random() * 256, 0, 128],
     getStrokeWidth: f => 10,
     pickable: true
   }
