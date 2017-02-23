@@ -38,10 +38,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {Layer} from '../../../lib';
-import ScatterplotLayer from '../scatterplot-layer';
-import PathLayer from '../path-layer/path-layer';
-import PolygonLayer from '../polygon-layer/polygon-layer';
+import {Layer, PolygonLayer, PathLayer} from 'deck.gl';
 
 import {getS2Polygon} from './s2-utils';
 
@@ -58,7 +55,7 @@ const defaultProps = {
   wireframe: false,
 
   // Cell geometry
-  getS2Cell: x => x.s2cell,
+  getS2Token: x => x.s2token,
   getHeight: x => 0,
 
   // Cell outline accessors
@@ -66,7 +63,7 @@ const defaultProps = {
   getStrokeWidth: f => f.strokeWidth || 1,
 
   // Cell fill accessors
-  getFillColor: f => f.fillColor || defaultFillColor,
+  getFillColor: f => f.fillColor || defaultFillColor
 };
 
 export default class S2Layer extends Layer {
@@ -79,11 +76,11 @@ export default class S2Layer extends Layer {
 
   updateState({oldProps, props, changeFlags}) {
     if (changeFlags.dataChanged) {
-      const {data, getS2Cell} = this.props;
+      const {data, getS2Token} = this.props;
       this.state.dataWithPolygons = data.map(object => {
         return {
           object,
-          polygon: getS2Polygon(getS2Cell(object))
+          polygon: getS2Polygon(getS2Token(object))
         };
       });
     }
@@ -114,9 +111,8 @@ export default class S2Layer extends Layer {
 
   renderLayers() {
 
-    const {subLayers: {pointFeatures, lineFeatures, polygonFeatures,
-      polygonOutlineFeatures}} = this.state;
-    const {id, getPointColor, getPointSize, getStrokeColor, getStrokeWidth,
+    const {polygons} = this.state;
+    const {id, getS2Token, getPointColor, getPointSize, getStrokeColor, getStrokeWidth,
       getFillColor, getHeight} = this.props;
     const {extruded, wireframe} = this.props;
 
@@ -129,7 +125,7 @@ export default class S2Layer extends Layer {
     // Filled Polygon Layer
     const polygonFillLayer = fillPolygons && new PolygonLayer(Object.assign({}, this.props, {
       id: `${id}-polygon-fill`,
-      getPolygon: x => getS2Polygon(getS2Cell(x)),
+      getPolygon: x => getS2Polygon(getS2Token(x)),
       getHeight: getHeight,
       getColor: getFillColor,
       extruded,
@@ -142,48 +138,48 @@ export default class S2Layer extends Layer {
       })
     }));
 
-    // Polygon outline or wireframe
-    let polygonOutlineLayer = null;
-    if (drawPolygons && extruded && wireframe) {
+    // // Polygon outline or wireframe
+    // let polygonOutlineLayer = null;
+    // if (drawPolygons && extruded && wireframe) {
 
-      polygonOutlineLayer = new PolygonLayer(Object.assign({}, this.props, {
-        id: `${id}-polygon-wireframe`,
-        data: polygonFeatures,
-        getPolygon: x => getS2Polygon(getS2Cell(x)),
-        getHeight,
-        getColor: getStrokeColor,
-        extruded: true,
-        wireframe: true,
-        // Override user's onHover and onClick props
-        onHover: this._onHoverSublayer.bind(this),
-        onClick: noop,
-        updateTriggers: {
-          getColor: this.props.updateTriggers.getStrokeColor
-        }
-      }));
+    //   polygonOutlineLayer = new PolygonLayer(Object.assign({}, this.props, {
+    //     id: `${id}-polygon-wireframe`,
+    //     data: polygonFeatures,
+    //     getPolygon: x => getS2Polygon(getS2Token(x)),
+    //     getHeight,
+    //     getColor: getStrokeColor,
+    //     extruded: true,
+    //     wireframe: true,
+    //     // Override user's onHover and onClick props
+    //     onHover: this._onHoverSublayer.bind(this),
+    //     onClick: noop,
+    //     updateTriggers: {
+    //       getColor: this.props.updateTriggers.getStrokeColor
+    //     }
+    //   }));
 
-    } else if (drawPolygons) {
+    // } else if (drawPolygons) {
 
-      polygonOutlineLayer = new PathLayer(Object.assign({}, this.props, {
-        id: `${id}-polygon-outline`,
-        data: polygonOutlineFeatures,
-        getPath: getCoordinates,
-        getColor: getStrokeColor,
-        getWidth: getStrokeWidth,
-        // Override user's onHover and onClick props
-        onHover: this._onHoverSublayer.bind(this),
-        onClick: noop,
-        updateTriggers: {
-          getColor: this.props.updateTriggers.getStrokeColor,
-          getWidth: this.props.updateTriggers.getStrokeWidth
-        }
-      }));
+    //   polygonOutlineLayer = new PathLayer(Object.assign({}, this.props, {
+    //     id: `${id}-polygon-outline`,
+    //     data: polygonOutlineFeatures,
+    //     getPath: getCoordinates,
+    //     getColor: getStrokeColor,
+    //     getWidth: getStrokeWidth,
+    //     // Override user's onHover and onClick props
+    //     onHover: this._onHoverSublayer.bind(this),
+    //     onClick: noop,
+    //     updateTriggers: {
+    //       getColor: this.props.updateTriggers.getStrokeColor,
+    //       getWidth: this.props.updateTriggers.getStrokeWidth
+    //     }
+    //   }));
 
-    }
+    // }
 
     return [
-      polygonFillLayer,
-      polygonOutlineLayer
+      polygonFillLayer
+//      polygonOutlineLayer
     ].filter(Boolean);
   }
 }

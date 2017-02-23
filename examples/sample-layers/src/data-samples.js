@@ -1,4 +1,5 @@
 /* load data samples for display */
+// Data from main example
 import allPoints from '../../main/data/sf.bike.parking.json';
 import {pointGrid} from './utils';
 import {pointsToWorldGrid} from './utils/grid-aggregator';
@@ -8,6 +9,9 @@ export {default as geojson} from '../../main/data/sample.geo.json';
 export {default as hexagons} from '../../main/data/hexagons.json';
 export {default as routes} from '../../main/data/sfmta.routes.json';
 export {default as iconAtlas} from '../../main/data/icon-atlas.json';
+
+// Additional data for new layers
+export {default as s2cells} from '../data/sf.s2level13cells.json';
 
 export const points = allPoints;
 export const positionOrigin = [-122.45, 37.75, 0];
