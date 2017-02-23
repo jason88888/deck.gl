@@ -38,7 +38,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {Layer, PolygonLayer, PathLayer} from 'deck.gl';
+import {Layer, PolygonLayer} from 'deck.gl';
 
 import {getS2Polygon} from './s2-utils';
 
@@ -69,7 +69,7 @@ const defaultProps = {
 export default class S2Layer extends Layer {
   initializeState() {
     this.state = {
-      subLayers: null,
+      polygons: [],
       pickInfos: []
     };
   }
@@ -103,10 +103,10 @@ export default class S2Layer extends Layer {
       return;
     }
 
-    Object.assign(opts.info, info, {
-      layer: this,
-      feature: get(info, 'object.feature') || info.object
-    });
+    // Object.assign(opts.info, info, {
+    //   layer: this,
+    //   feature: get(info, 'object.feature') || info.object
+    // });
   }
 
   renderLayers() {
@@ -123,10 +123,10 @@ export default class S2Layer extends Layer {
     fillPolygons = fillPolygons && polygonFeatures && polygonFeatures.length > 0;
 
     // Filled Polygon Layer
-    const polygonFillLayer = fillPolygons && new PolygonLayer(Object.assign({}, this.props, {
+    const polygonFillLayer = new PolygonLayer(Object.assign({}, this.props, {
       id: `${id}-polygon-fill`,
       getPolygon: x => getS2Polygon(getS2Token(x)),
-      getHeight: getHeight,
+      getHeight,
       getColor: getFillColor,
       extruded,
       wireframe: false,

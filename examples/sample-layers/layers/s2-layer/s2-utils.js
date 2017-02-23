@@ -1,6 +1,6 @@
 // s2-geometry is a pure JavaScript port of Google/Niantic's S2 Geometry library
 // which is perfect since it works in the browser.
-import S2 from 's2-geometry';
+import {S2} from 's2-geometry';
 
 /**
  * Get a polygon with corner coordinates for an s2 cell
