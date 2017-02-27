@@ -45,7 +45,7 @@ export default class GeoJsonLayer64 extends GeoJsonLayer {
 
     // Override user's onHover and onClick props
     const handlers = {
-      onHover: this._onHoverSublayer.bind(this),
+      onHover: this._onPickSublayer.bind(this),
       onClick: noop
     };
 
