@@ -95,7 +95,6 @@ const GeoJsonLayerExample = {
       const opacity = f.properties['fill-opacity'] * 255;
       return setOpacity(color, opacity);
     },
-    strokeWidth: 10,
     strokeWidthMinPixels: 1,
     pickable: true
   }
