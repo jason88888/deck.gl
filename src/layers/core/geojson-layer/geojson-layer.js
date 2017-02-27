@@ -52,14 +52,14 @@ const defaultProps = {
   getElevation: f => 1000
 };
 
-function noop() {}
-
 const getCoordinates = f => get(f, 'geometry.coordinates');
 
 export default class GeoJsonLayer extends Layer {
+
   initializeState() {
     this.state = {
       subLayers: null,
+      subLayerCount: 0,
       pickInfos: []
     };
   }
@@ -72,27 +72,32 @@ export default class GeoJsonLayer extends Layer {
     }
   }
 
-  _onHoverSublayer(info) {
-    this.state.pickInfos.push(info);
+  _onPickSublayer(mode, info) {
+    const {pickInfos, subLayerCount} = this.state;
+    pickInfos.push(info);
+
+    if (pickInfos.length === subLayerCount) {
+      // all sublayers have been accounted for
+      let pickInfo = pickInfos.find(i => i.index >= 0) || pickInfos[0];
+
+      pickInfo = Object.assign({}, pickInfo, {
+        layer: this,
+        feature: get(pickInfo, 'object.feature') || pickInfo.object
+      });
+
+      switch (mode) {
+      case 'click': this.props.onClick(pickInfo); break;
+      case 'hover': this.props.onHover(pickInfo); break;
+      default: throw new Error('unknown pick type');
+      }
+    }
   }
 
   pick(opts) {
-    super.pick(opts);
-
-    const info = this.state.pickInfos.find(i => i.index >= 0);
-
-    if (opts.mode === 'hover') {
-      this.state.pickInfos = [];
-    }
-
-    if (!info) {
-      return;
-    }
-
-    Object.assign(opts.info, info, {
-      layer: this,
-      feature: get(info, 'object.feature') || info.object
-    });
+    // this is called before the onHover/onClick of sublayers
+    // pickInfo is used to collect the pick results of all sublayers
+    this.state.pickInfos.length = 0;
+    return null;
   }
 
   renderLayers() {
@@ -110,8 +115,8 @@ export default class GeoJsonLayer extends Layer {
 
     // Override user's onHover and onClick props
     const handlers = {
-      onHover: this._onHoverSublayer.bind(this),
-      onClick: noop
+      onHover: this._onPickSublayer.bind(this, 'hover'),
+      onClick: this._onPickSublayer.bind(this, 'click')
     };
 
     // Filled Polygon Layer
@@ -151,10 +156,10 @@ export default class GeoJsonLayer extends Layer {
         data: polygonOutlineFeatures,
         getPath: getCoordinates,
         getColor: getStrokeColor,
-        getWidth: getStrokeWidth,
+        getStrokeWidth,
         updateTriggers: {
           getColor: this.props.updateTriggers.getStrokeColor,
-          getWidth: this.props.updateTriggers.getStrokeWidth
+          getStrokeWidth: this.props.updateTriggers.getStrokeWidth
         }
       }));
     }
@@ -165,10 +170,10 @@ export default class GeoJsonLayer extends Layer {
         data: lineFeatures,
         getPath: getCoordinates,
         getColor: getStrokeColor,
-        getWidth: getStrokeWidth,
+        getStrokeWidth,
         updateTriggers: {
           getColor: this.props.updateTriggers.getStrokeColor,
-          getWidth: this.props.updateTriggers.getStrokeWidth
+          getStrokeWidth: this.props.updateTriggers.getStrokeWidth
         }
       }));
 
@@ -185,12 +190,16 @@ export default class GeoJsonLayer extends Layer {
         }
       }));
 
-    return [
+    const layers = [
       polygonFillLayer,
       polygonOutlineLayer,
       lineLayer,
       pointLayer
     ].filter(Boolean);
+
+    this.state.subLayerCount = layers.length;
+
+    return layers;
   }
 }
 
